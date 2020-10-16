@@ -1,0 +1,5 @@
+{
+    "function": "%TYPE% %CLASS_NAME%::%FUNC_NAME%(%ARGS%)\n{\n%FUNC_BODY%\n}\n",
+    "variable": "%TYPE% %VAR_NAME%;",
+    "register_method": "register_method("%FUNC_NAME%",&%CLASS_NAME%::%FUNC_NAME%);"
+} 
