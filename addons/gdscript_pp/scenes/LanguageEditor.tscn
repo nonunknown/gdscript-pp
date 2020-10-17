@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://addons/gdscript_pp/scripts/LanguageEditor.gd" type="Script" id=1]
 [ext_resource path="res://addons/gdscript_pp/font/AnonymousPro-Regular.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://addons/gdscript_pp/scripts/CodeEditor.gd" type="Script" id=3]
+[ext_resource path="res://addons/gdscript_pp/scenes/Output.gd" type="Script" id=4]
 
 [sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 2 )
@@ -25,31 +27,23 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Panel" type="Panel" parent="Main/VBoxContainer"]
-margin_right = 1024.0
-margin_bottom = 25.0
-rect_min_size = Vector2( 0, 25 )
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Main/VBoxContainer/Panel"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="bt_compile" type="Button" parent="Main/VBoxContainer/Panel/HBoxContainer"]
-margin_right = 65.0
-margin_bottom = 25.0
-text = "Compile"
-
 [node name="TextEdit" type="TextEdit" parent="Main/VBoxContainer"]
-margin_top = 29.0
 margin_right = 1024.0
-margin_bottom = 596.0
+margin_bottom = 281.0
 size_flags_vertical = 3
 custom_fonts/font = SubResource( 1 )
-text = "class_name Test
-extends Node"
+text = "define INBUFF
+
+class_name Test
+extends Node
+
+var my_int:int = 10
+var _p_int:int = 10
+var no_def:float
+var _no_p_no_def:float
+
+func test() -> void:
+	pass"
 highlight_current_line = true
 syntax_highlighting = true
 show_line_numbers = true
@@ -61,21 +55,57 @@ virtual_keyboard_enabled = false
 smooth_scrolling = true
 minimap_draw = true
 caret_blink = true
+script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Panel2" type="Panel" parent="Main/VBoxContainer"]
-margin_top = 600.0
+[node name="te_output" type="TextEdit" parent="Main/VBoxContainer"]
+margin_top = 285.0
 margin_right = 1024.0
-margin_bottom = 600.0
+margin_bottom = 566.0
+size_flags_vertical = 11
+readonly = true
+highlight_current_line = true
+syntax_highlighting = true
+show_line_numbers = true
+highlight_all_occurrences = true
+override_selected_font_color = true
+smooth_scrolling = true
+script = ExtResource( 4 )
 
-[node name="Tabs" type="Tabs" parent="Main/VBoxContainer"]
-visible = false
-margin_top = 576.0
+[node name="Contents" type="Panel" parent="Main/VBoxContainer"]
+margin_top = 570.0
 margin_right = 1024.0
 margin_bottom = 600.0
-scrolling_enabled = false
+rect_min_size = Vector2( 0, 30 )
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Main/VBoxContainer/Contents"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="bt_output" type="Button" parent="Main/VBoxContainer/Contents/HBoxContainer"]
+margin_right = 57.0
+margin_bottom = 30.0
+mouse_default_cursor_shape = 2
+text = "Output"
+flat = true
+
+[node name="VSeparator" type="VSeparator" parent="Main/VBoxContainer/Contents/HBoxContainer"]
+margin_left = 61.0
+margin_right = 65.0
+margin_bottom = 30.0
+
+[node name="bt_convert" type="Button" parent="Main/VBoxContainer/Contents/HBoxContainer"]
+margin_left = 69.0
+margin_right = 130.0
+margin_bottom = 30.0
+mouse_default_cursor_shape = 2
+text = "Convert"
+flat = true
 
 [node name="Generated" type="Control" parent="."]
 visible = false
@@ -123,4 +153,6 @@ caret_blink = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
-[connection signal="pressed" from="Main/VBoxContainer/Panel/HBoxContainer/bt_compile" to="." method="_on_bt_compile_pressed"]
+[connection signal="text_changed" from="Main/VBoxContainer/TextEdit" to="Main/VBoxContainer/TextEdit" method="_on_TextEdit_text_changed"]
+[connection signal="pressed" from="Main/VBoxContainer/Contents/HBoxContainer/bt_output" to="." method="_on_bt_output_pressed"]
+[connection signal="pressed" from="Main/VBoxContainer/Contents/HBoxContainer/bt_convert" to="." method="_on_bt_convert_pressed"]
