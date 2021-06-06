@@ -2,6 +2,13 @@
 
 GDPP (GDScript++) Is a language that is a mix of GDScript and C++
 
+
+## CHANGELOG
+
+* Added actual conversion to CPP (Header files only)
+* Updated base_hpp to be an actual hpp file, same for cpp
+* Added var to headers (detect public and private, private ones are identified with a "_" before the var name)
+
 ## Description
 
 * Converts GDScript to C++ (GDNATIVE)

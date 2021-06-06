@@ -1,14 +1,14 @@
 extends Control
 
-const keywords = ["const","var","func","extends","class_name","define"]
+const keywords = ["const","var","func","extends","class_name","define","enum","signal","export","onready","unsafe"]
 const others = ["if", "else", "elif", "pass", "match","return"]
 const types = ["int","float","bool","vector","void"]
-const cpp_types = ["byte","char"]
+const cpp_types = ["char"]
 const symbols = [":","->","."]
 
 const placeholders:Dictionary = {
-	"class_name":"%CLASS_NAME%",
-	"class_extends":"%CLASS_EXTENDS%",
+	"cname":"%CLASS_NAME%",
+	"cextends":"%CLASS_EXTENDS%",
 	"public_stuff":"%PUBLIC_STUFF%",
 	"private_stuff":"%PRIVATE_STUFF%",
 	"def":"%UNIQUE_NAME%",
@@ -34,13 +34,17 @@ func _ready():
 	for k in keywords:
 		code_editor.add_keyword_color(k,Color.red)
 	for t in types:
-		code_editor.add_keyword_color(t,Color.pink)
+		code_editor.add_keyword_color(t,Color.rebeccapurple)
 	for s in symbols:
 		code_editor.add_keyword_color(s,Color.wheat)
+	for o in others:
+		code_editor.add_keyword_color(o,Color.aqua)
+	for c in cpp_types:
+		code_editor.add_keyword_color(c,Color.yellowgreen)
 #	for s in special:
 #		code_editor.add_keyword_color(s,Color.purple)
-	code_editor.add_color_region("#","",Color.darkgray)
-	code_editor.add_color_region('"','"',Color.yellow)
+#	code_editor.add_color_region("#","\n",Color.black)
+#	code_editor.add_color_region('"','"',Color.yellow)
 #	$TextEdit.add_color_region("DEF","",Color.purple)
 #	$TextEdit.add_k
 	pass # Replace with function body.
@@ -65,18 +69,20 @@ func lint_code():
 	
 	
 	pass
-	
+
+var hpp_source:String = ""
+var public:String = ""
+var private:String = ""
 func generate_header():
 	output.send_message("Starting Header Generation:")
 	
 	output.send_message("\t defining variables")
-	var hpp_source:String = ""
-	var public:String = ""
-	var private:String = ""
-	
+	public = ""
+	private = ""
+	hpp_source = ""
 	output.send_message("\t Opening Base HPP File")
 	var f:File = File.new()
-	var err = f.open("res://addons/gdscript_pp/base_hpp.txt",File.READ)
+	var err = f.open("res://addons/gdscript_pp/base_hpp.hpp",File.READ)
 	if err != OK:
 		output.send_error("\t Error Opening HPP Base File")
 		return
@@ -85,17 +91,21 @@ func generate_header():
 		output.send_message("\t Opened OK!")
 
 	f.close()
-
+	var function_index:int = -1
 	output.send_message("Reading your GDPP Source code")
 	for i in range(code_editor.get_line_count()):
 		var line:String = code_editor.get_line(i)
 #		output.send_error("@%s@" % line)
-		if line.empty() or line.begins_with("\t"):
-#			output.send_warning("Empty Line found at: %d" % (i+1))
+#		if line.begins_with("\t"):
+#			var previous_line:String = code_editor.get_line(i-1)
+#			output.send_message("Previous line: %s" % previous_line)
+#			var previous_is_func:bool = ("func" in previous_line)
+#			output.send_message("Previous line is function: %s" % str(previous_is_func) )
+		if line.empty() or line.begins_with("#") or line.begins_with("\t"):
+			output.send_warning("Empty Line found at: %d" % (i+1))
 			continue
+			
 		
-#		if line.begins_with("\t") or line.begins_with("\n"): continue
-#		output.send_message("Found this line: \t %s" % line)
 		var source = line.split(" ",false)
 		var found:bool = false
 		output.send_message("reading: %s" % str(source))
@@ -107,12 +117,24 @@ func generate_header():
 		if !found:
 			output.send_error("error at line %d: keyword is expected and nothing has been found." % (i+1) )
 			return
-		
+		print(str(source))
 		output.send_warning(str(source))
+	hpp_source = hpp_source.replace(placeholders.public_stuff,public)
+	hpp_source = hpp_source.replace(placeholders.private_stuff,private)
+	$Generated/HPP.text = hpp_source
+	
+	
 
 
 func _eat_var(data:Array) -> void:
 	output.send_message("Eating Var %s" % str(data))
+	var name:String = data[1].split(":")[0]
+	var type:String = data[1].split(":")[1]
+	if name.begins_with("_"):
+		private += "\t%s %s;\n\t" % [type,name]
+	else:
+		public += "\t%s %s;\n\t" % [type,name]
+	
 	pass
 
 func _eat_func(data:Array) -> void:
@@ -121,18 +143,50 @@ func _eat_func(data:Array) -> void:
 	pass
 
 func _eat_class_name(data:Array) -> void:
-	output.send_message("Eating classna %s" % str(data))
+	output.send_message("Eating classname %s" % str(data))
+	
+	hpp_source = hpp_source.replace(placeholders.cname,data[1])
+	
+	
 	
 	pass
 
 func _eat_extends(data:Array) -> void:
 	output.send_message("Eating extends %s" % str(data))
+	hpp_source = hpp_source.replace(placeholders.cextends,data[1])
 	
 	pass
 
 func _eat_define(data:Array) -> void:
 	output.send_message("Eating define %s" % str(data))
 	
+	hpp_source = hpp_source.replace(placeholders.def,data[1])
+	output.send_message("Define: %s" % data[0])
+	pass
+
+func _eat_enum(data:Array) -> void:
+	output.send_message("Eating enum %s" % str(data))
+	
+	pass
+
+func _eat_signal(data:Array) -> void:
+	output.send_message("Eating signal %s" % str(data))
+	pass
+
+func _eat_export(data:Array) -> void:
+	output.send_message("Eating export %s" % str(data))
+	pass
+	
+func _eat_onready(data:Array) -> void:
+	output.send_message("Eating onready %s" % str(data))
+	pass
+
+func _eat_const(data:Array) -> void:
+	output.send_message("Eating const %s" % str(data))
+	pass
+
+func _eat_unsafe(data:Array) -> void:
+	output.send_message("Eating unsafe %s" % str(data))
 	pass
 
 func generate_cpp():
@@ -142,7 +196,7 @@ func save_generated_files():
 	pass
 
 func show_stuff():
-#	$Generated.visible = true
+	$Generated.visible = true
 	pass
 
 func split(string:String):
